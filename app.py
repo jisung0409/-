@@ -1,50 +1,45 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
+from datetime import datetime
 
-st.set_page_config(page_title="우리 반 수행평가 게시판", layout="centered")
+# 페이지 설정
+st.set_page_config(page_title="우리 반 수행평가", layout="centered")
 
-st.title("📝 학급 수행평가 공지 (Google Sheets 연동)")
+# 데이터 저장을 위한 리스트 초기화 (세션 상태 이용)
+if 'tasks' not in st.session_state:
+    st.session_state.tasks = []
 
-# 구글 시트 연결 설정
-conn = st.connection("gsheets", type=GSheetsConnection)
+st.title("📝 학급 수행평가 공지")
 
-# 기존 데이터 불러오기
-df = conn.read(ttl="1m") # 1분마다 캐시 갱신
-
-# --- 수행평가 입력 섹션 ---
-with st.expander("➕ 새로운 수행평가 추가하기", expanded=True):
-    with st.form("task_form", clear_on_submit=True):
+# --- 입력 섹션 ---
+with st.form("task_form", clear_on_submit=True):
+    col1, col2 = st.columns(2)
+    with col1:
         subject = st.text_input("과목명")
-        content = st.text_area("수행평가 내용")
+    with col2:
         deadline = st.date_input("마감 기한")
-        
-        submit_button = st.form_submit_button("등록하기")
-        
-        if submit_button:
-            if subject and content:
-                # 새 데이터 생성
-                new_row = pd.DataFrame([{
-                    "과목": subject,
-                    "내용": content,
-                    "마감기한": str(deadline)
-                }])
-                
-                # 기존 데이터에 추가
-                updated_df = pd.concat([df, new_row], ignore_index=True)
-                
-                # 구글 시트에 업데이트 (시트 URL은 secrets에 저장됨)
-                conn.update(data=updated_df)
-                
-                st.success("구글 시트에 성공적으로 기록되었습니다!")
-                st.cache_data.clear() # 캐시 삭제 후 새로고침
-                st.rerun()
-            else:
-                st.error("모든 필드를 입력해주세요.")
+    
+    content = st.text_area("수행평가 내용")
+    submit_button = st.form_submit_button("등록하기")
 
-# --- 목록 표시 ---
-st.subheader("📌 현재 공지된 수행평가")
-if not df.empty:
-    st.table(df.iloc[::-1]) # 최신순
+    if submit_button:
+        if subject and content:
+            new_task = {"과목": subject, "내용": content, "마감기한": str(deadline)}
+            st.session_state.tasks.append(new_task)
+            st.success("등록되었습니다!")
+        else:
+            st.error("모든 내용을 입력해주세요.")
+
+# --- 목록 표시 섹션 ---
+st.subheader("📌 수행평가 리스트")
+
+if st.session_state.tasks:
+    df = pd.DataFrame(st.session_state.tasks)
+    # 최신순으로 정렬해서 보여줌
+    st.table(df.iloc[::-1])
+    
+    # 데이터 내려받기 기능 (백업용)
+    csv = df.to_csv(index=False).encode('utf-8-sig')
+    st.download_button("엑셀(CSV) 파일로 저장하기", csv, "tasks.csv", "text/csv")
 else:
-    st.write("등록된 내용이 없습니다.")
+    st.write("아직 등록된 수행평가가 없습니다.")
