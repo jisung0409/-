@@ -34,7 +34,7 @@ with st.sidebar:
 
 st.markdown("---")
 
-# --- 수행평가 목록 표시 섹션 ---
+# --- 데이터 표시 섹션 (자동 정렬 버전) ---
 st.subheader("📌 현재 공유 중인 수행평가")
 
 try:
@@ -42,14 +42,21 @@ try:
     df = pd.read_csv(READ_URL)
     
     if not df.empty:
-        # 최신 등록순으로 보여주기
-        st.table(df.iloc[::-1])
+        # 1. '마감기한' 컬럼을 날짜 형식으로 변환
+        df['마감기한'] = pd.to_datetime(df['마감기한'])
+        
+        # 2. 날짜순으로 정렬 (ascending=True: 빠른 날짜가 위로)
+        df = df.sort_values(by='마감기한', ascending=True)
+        
+        # 3. 화면에 보여줄 때는 다시 예쁜 글자 형식으로 변환
+        df['마감기한'] = df['마감기한'].dt.strftime('%Y-%m-%d')
+        
+        # 번호(index) 없이 깔끔하게 표로 표시
+        st.table(df)
     else:
         st.info("아직 등록된 수행평가가 없습니다. 첫 번째 소식을 알려보세요!")
-except:
+except Exception as e:
     st.warning("데이터를 불러오는 중입니다. 잠시 후 새로고침(F5) 해주세요.")
-
-
 # --- 수행평가 등록 섹션 ---
 st.subheader("➕ 새로운 수행평가 추가")
 with st.form("task_form", clear_on_submit=True):
