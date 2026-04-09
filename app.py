@@ -62,32 +62,36 @@ with col_add:
                 st.rerun()
 
 with col_list:
-    st.subheader("📌 수행평가 목록 (마감일 순)")
+    st.subheader("📌 현재 공유 중인 수행평가")
     try:
-        df = pd.read_csv(READ_URL)
+        # 실시간 데이터 로드 (캐시 방지를 위해 파라미터 추가)
+        df = pd.read_csv(READ_URL + f"&t={datetime.now().timestamp()}")
+        
         if not df.empty:
-            # 날짜 정렬 알고리즘 적용
+            # 컬럼명이 시트와 맞는지 확인 (보통 4번째 열이 image_url)
+            # 만약 시트 첫 행에 제목이 없다면 header=None으로 읽어야 할 수도 있습니다.
+            df.columns = ["과목", "내용", "마감기한", "image_url"]
+            
             df['마감기한'] = pd.to_datetime(df['마감기한'])
             df = df.sort_values(by='마감기한')
-            
+
             for index, row in df.iterrows():
-                # 마감일까지 남은 일수 계산
                 days_left = (row['마감기한'] - datetime.now()).days + 1
                 d_label = f"D-{days_left}" if days_left > 0 else "마감"
                 
-                # 가독성을 높인 리스트 아이템
                 with st.expander(f"[{d_label}] {row['과목']} - {row['마감기한'].strftime('%m/%d')}까지"):
                     st.write(f"**상세 내용:** {row['내용']}")
-                    # 사진이 있는 경우에만 표시
-                    if pd.notna(row.get('image_url')) and str(row['image_url']).startswith("http"):
-                        st.image(row['image_url'], caption=f"{row['과목']} 관련 자료", use_container_width=True)
+                    
+                    # 이미지 주소 유효성 검사 강화
+                    img_path = str(row['image_url']).strip()
+                    if img_path.startswith("http"):
+                        st.image(img_path, caption="참고 자료", use_container_width=True)
                     else:
-                        st.caption("등록된 사진이 없습니다.")
+                        st.caption("📷 등록된 사진이 없습니다.")
         else:
-            st.write("등록된 내용이 없습니다.")
-    except:
-        st.write("데이터를 로드하는 중입니다...")
-
+            st.info("등록된 수행평가가 없습니다.")
+    except Exception as e:
+        st.error(f"데이터를 불러오는 중 오류가 발생했습니다: {e}")
 # --- 제작자 정보 ---
 st.markdown("---")
 st.caption("제작자: 30508 김지성 | 본 페이지는 실시간 학급 공유용입니다.")
