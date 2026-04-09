@@ -1,103 +1,93 @@
 import streamlit as st
 import pandas as pd
 import requests
+from datetime import datetime
 
-# 1. 페이지 기본 설정
-st.set_page_config(
-    page_title="30508 김지성의 수행평가 게시판", 
-    layout="centered", 
-    page_icon="📋"
-)
+# 1. 페이지 설정
+st.set_page_config(page_title="30508 김지성의 수행알리미", layout="wide")
 
-# 2. 구글 시트 및 API 정보 (본인 정보 유지)
+# 2. 정보 설정 (본인의 ID와 새로운 API 주소를 넣으세요)
 SHEET_ID = "1uz275qask-1pt4x1MpMXWq7AkGBLx2H6az_9RUvwB3c"
 READ_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
+API_URL = "여기에_새로_배포한_웹_앱_URL_넣기"
 
-# ★ 중요: 아까 성공했던 구글 웹 앱 URL을 여기에 다시 넣으세요 ★
-API_URL = "https://script.google.com/macros/s/AKfycbynSubYs1Dv_Z1a6283UuHxkLe9KZfmLvtFZxYvv76KIbx86tBAqIazUOFCGV4oKuAIFQ/exec"
-
-# --- 상단 헤더 및 제작자 정보 ---
-st.title("📝 우리 반 수행평가 알림판")
-st.caption("👨‍💻 제작자: **30508 김지성** (제작자 증명)")
-
-# --- 이용 안내 및 경고 문구 ---
-with st.sidebar:
-    st.header("📢 이용 안내")
-    st.info("""
-    - 이 페이지는 우리 반 친구들 모두와 **실시간으로 공유**됩니다.
-    - 누구나 수행평가를 직접 추가할 수 있습니다.
-    - **주의:** 장난이나 비속어 등 이상한 내용을 적으면 안 됩니다. 
-    - 건전한 학급 문화를 위해 협조해 주세요!
-    """)
-    st.write("---")
-    st.success("데이터는 구글 시트에 안전하게 보관됩니다.")
-
-st.markdown("---")
-
-# --- 데이터 표시 섹션 (자동 정렬 버전) ---
-st.subheader("📌 현재 공유 중인 수행평가")
-
-try:
-    # 실시간 데이터 로드
-    df = pd.read_csv(READ_URL)
-    
-    if not df.empty:
-        # 1. '마감기한' 컬럼을 날짜 형식으로 변환
-        df['마감기한'] = pd.to_datetime(df['마감기한'])
-        
-        # 2. 날짜순으로 정렬 (ascending=True: 빠른 날짜가 위로)
-        df = df.sort_values(by='마감기한', ascending=True)
-        
-        # 3. 화면에 보여줄 때는 다시 예쁜 글자 형식으로 변환
-        df['마감기한'] = df['마감기한'].dt.strftime('%Y-%m-%d')
-        
-        # 번호(index) 없이 깔끔하게 표로 표시
-        st.table(df)
+# --- [추가] D-Day 계산 함수 ---
+def get_dday(target_date_str, label):
+    target_date = datetime.strptime(target_date_str, "%Y-%m-%d")
+    today = datetime.now()
+    delta = target_date - today
+    days = delta.days + 1
+    if days > 0:
+        return f"{label}: **D-{days}**"
+    elif days == 0:
+        return f"{label}: **D-Day**"
     else:
-        st.info("아직 등록된 수행평가가 없습니다. 첫 번째 소식을 알려보세요!")
-except Exception as e:
-    st.warning("데이터를 불러오는 중입니다. 잠시 후 새로고침(F5) 해주세요.")
-# --- 수행평가 등록 섹션 ---
-st.subheader("➕ 새로운 수행평가 추가")
-with st.form("task_form", clear_on_submit=True):
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        subject = st.text_input("과목명", placeholder="예: 수학, 영어")
-    with col2:
-        deadline = st.date_input("마감 기한")
-    
-    content = st.text_area("수행평가 상세 내용 및 준비물", placeholder="친구들이 알기 쉽게 자세히 적어주세요.")
-    
-    submit_button = st.form_submit_button("🚀 수행평가 등록하기")
+        return f"{label}: **종료**"
 
-    if submit_button:
-        if subject and content:
-            # 등록 중임을 알리는 상태 표시
-            with st.spinner("데이터를 공유 시트에 기록 중입니다..."):
-                try:
-                    response = requests.post(API_URL, json={
-                        "subject": subject,
-                        "content": content,
-                        "deadline": str(deadline)
-                    })
-                    if "Success" in response.text:
-                        # 2. 등록 성공 시 메시지 띄우기
-                        st.success("✅ 등록 성공! 친구들과 정보가 공유되었습니다.")
-                        st.balloons() # 축하 효과
-                        st.rerun()
+# --- 상단 D-Day 섹션 ---
+st.markdown("### 📅 주요 시험 일정")
+d1, d2, d3 = st.columns(3)
+with d1:
+    st.info(get_dday("2026-04-28", "📝 중간고사"))
+with d2:
+    st.info(get_dday("2026-05-07", "📊 5월 모의고사"))
+with d3:
+    st.warning(get_dday("2026-11-19", "🎓 수능"))
+
+st.write("---")
+
+# --- 좌우 레이아웃 나누기 (왼쪽: 목록, 오른쪽: 추가) ---
+col_list, col_add = st.columns([2, 1])
+
+with col_add:
+    st.subheader("➕ 수행평가 추가")
+    with st.form("add_form", clear_on_submit=True):
+        sub = st.text_input("과목명")
+        date = st.date_input("마감 기한")
+        con = st.text_area("상세 내용")
+        img_url = st.text_input("사진 URL (선택)", placeholder="이미지 링크를 복사해 넣으세요")
+        
+        st.caption("⚠️ 이상한 내용을 적으면 생기부에 불이익이 있을 수 있습니다.")
+        submit = st.form_submit_button("등록하기")
+        
+        if submit and sub and con:
+            response = requests.post(API_URL, json={
+                "subject": sub,
+                "content": con,
+                "deadline": str(date),
+                "image_url": img_url
+            })
+            if "Success" in response.text:
+                st.success("등록 성공!")
+                st.rerun()
+
+with col_list:
+    st.subheader("📌 수행평가 목록 (마감일 순)")
+    try:
+        df = pd.read_csv(READ_URL)
+        if not df.empty:
+            # 날짜 정렬 알고리즘 적용
+            df['마감기한'] = pd.to_datetime(df['마감기한'])
+            df = df.sort_values(by='마감기한')
+            
+            for index, row in df.iterrows():
+                # 마감일까지 남은 일수 계산
+                days_left = (row['마감기한'] - datetime.now()).days + 1
+                d_label = f"D-{days_left}" if days_left > 0 else "마감"
+                
+                # 가독성을 높인 리스트 아이템
+                with st.expander(f"[{d_label}] {row['과목']} - {row['마감기한'].strftime('%m/%d')}까지"):
+                    st.write(f"**상세 내용:** {row['내용']}")
+                    # 사진이 있는 경우에만 표시
+                    if pd.notna(row.get('image_url')) and str(row['image_url']).startswith("http"):
+                        st.image(row['image_url'], caption=f"{row['과목']} 관련 자료", use_container_width=True)
                     else:
-                        st.error("등록에 실패했습니다. 다시 시도해 주세요.")
-                except Exception as e:
-                    st.error(f"서버 연결 오류: {e}")
+                        st.caption("등록된 사진이 없습니다.")
         else:
-            st.warning("과목명과 내용을 모두 입력해 주세요.")
+            st.write("등록된 내용이 없습니다.")
+    except:
+        st.write("데이터를 로드하는 중입니다...")
 
+# --- 제작자 정보 ---
 st.markdown("---")
-
-
-# --- 하단 제작자 표시 ---
-st.markdown("---")
-st.center_text = st.markdown(
-    "<p style='text-align: center; color: gray;'>Designed by 30508 김지성 | All data is synced with Google Sheets</p>", 
-    unsafe_allow_html=True
-)
+st.caption("제작자: 30508 김지성 | 본 페이지는 실시간 학급 공유용입니다.")
