@@ -9,7 +9,7 @@ st.set_page_config(page_title="30508 김지성의 수행알리미", layout="wide
 # 2. 정보 설정 (본인의 ID와 새로운 API 주소를 넣으세요)
 SHEET_ID = "1uz275qask-1pt4x1MpMXWq7AkGBLx2H6az_9RUvwB3c"
 READ_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
-API_URL = "여기에_새로_배포한_웹_앱_URL_넣기"
+API_URL = "https://script.google.com/macros/s/AKfycbyp29u67mqeOkUfQwy1m960us5s4MVIobSCxcRJpNqwRS7gWhrN3OztjyybbLjYxw7woA/exec"
 
 # --- [추가] D-Day 계산 함수 ---
 def get_dday(target_date_str, label):
