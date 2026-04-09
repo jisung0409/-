@@ -47,7 +47,7 @@ with col_add:
         con = st.text_area("상세 내용")
         img_url = st.text_input("사진 URL (선택)", placeholder="이미지 링크를 복사해 넣으세요")
         
-        st.caption("⚠️ 이상한 내용을 적으면 생기부에 불이익이 있을 수 있습니다.")
+        st.caption("⚠️ 이상한 내용을 적으면 생기부에 불이익이 있을리는 없지만 쓰지 마십쇼")
         submit = st.form_submit_button("등록하기")
         
         if submit and sub and con:
