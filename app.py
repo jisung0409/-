@@ -4,7 +4,7 @@ import requests
 from datetime import datetime
 
 # 1. 페이지 설정
-st.set_page_config(page_title="30508 김지성의 수행알리미", layout="wide")
+st.set_page_config(page_title="3-5 반을 위한 30508 김지성의 수행알리미", layout="wide")
 
 # 2. 정보 설정 (본인의 ID와 새로운 API 주소를 넣으세요)
 SHEET_ID = "1uz275qask-1pt4x1MpMXWq7AkGBLx2H6az_9RUvwB3c"
