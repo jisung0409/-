@@ -85,7 +85,7 @@ with col_list:
                     # 이미지 주소 유효성 검사 강화
                     img_path = str(row['image_url']).strip()
                     if img_path.startswith("http"):
-                        st.image(img_path, caption="참고 자료", use_container_width=True)
+                        st.image(img_path, caption="참고 자료", width=400)
                     else:
                         st.caption("📷 등록된 사진이 없습니다.")
         else:
