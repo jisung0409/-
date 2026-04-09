@@ -85,13 +85,7 @@ with col_list:
                     # 이미지 주소 유효성 검사 강화
                     img_path = str(row['image_url']).strip()
                     if img_path.startswith("http"):
-                        # 기존 코드: st.image(img_path, ...)
-# 수정 코드: 주소 뒤에 타임스탬프를 붙여서 새로운 요청처럼 인식하게 함
-if img_path.startswith("http"):
-    # 주소에 이미 ?가 있으면 &를, 없으면 ?를 붙여서 파라미터 추가
-    separator = "&" if "?" in img_path else "?"
-    clean_img_url = f"{img_path}{separator}raw=true"
-    st.image(clean_img_url, caption="참고 자료", use_container_width=True)
+                        st.image(img_path, caption="참고 자료", use_container_width=True)
                     else:
                         st.caption("📷 등록된 사진이 없습니다.")
         else:
