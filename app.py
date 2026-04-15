@@ -11,7 +11,7 @@ SHEET_ID = "1uz275qask-1pt4x1MpMXWq7AkGBLx2H6az_9RUvwB3c"
 READ_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
 # ★ 중요: 아까 성공했던 구글 웹 앱 URL을 꼭 여기에 다시 넣으세요 ★
-API_URL = "여기에_새로_배포한_웹_앱_URL_넣기"
+API_URL = "https://docs.google.com/spreadsheets/d/1uz275qask-1pt4x1MpMXWq7AkGBLx2H6az_9RUvwB3c/edit?usp=sharing"
 
 # --- D-Day 계산 함수 ---
 def get_dday(target_date_str, label):
