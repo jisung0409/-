@@ -62,36 +62,45 @@ with col_add:
                 st.rerun()
 
 with col_list:
-    st.subheader("📌 현재 공유 중인 수행평가")
+    st.subheader("📌 수행평가 목록")
     try:
-        # 실시간 데이터 로드 (캐시 방지를 위해 파라미터 추가)
-        df = pd.read_csv(READ_URL + f"&t={datetime.now().timestamp()}")
-        
+        # 1. 데이터 불러오기 및 날짜 변환
+        df = pd.read_csv(READ_URL)
         if not df.empty:
-            # 컬럼명이 시트와 맞는지 확인 (보통 4번째 열이 image_url)
-            # 만약 시트 첫 행에 제목이 없다면 header=None으로 읽어야 할 수도 있습니다.
-            df.columns = ["과목", "내용", "마감기한", "image_url"]
-            
             df['마감기한'] = pd.to_datetime(df['마감기한'])
-            df = df.sort_values(by='마감기한')
+            today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
-            for index, row in df.iterrows():
-                days_left = (row['마감기한'] - datetime.now()).days + 1
-                d_label = f"D-{days_left}" if days_left > 0 else "마감"
-                
-                with st.expander(f"[{d_label}] {row['과목']} - {row['마감기한'].strftime('%m/%d')}까지"):
-                    st.write(f"**상세 내용:** {row['내용']}")
+            # 2. 데이터 분리 (진행 중 vs 마감됨)
+            # 오늘 이후인 것들은 마감 기한이 임박한 순(오름차순) 정렬
+            active_df = df[df['마감기한'] >= today].sort_values(by='마감기한')
+            # 오늘 이전인 것들은 최신 마감 순(내림차순) 정렬
+            expired_df = df[df['마감기한'] < today].sort_values(by='마감기한', ascending=False)
+
+            # 3. 진행 중인 수행평가 표시
+            st.markdown("#### 🏃‍♂️ 진행 중인 수행평가")
+            if not active_df.empty:
+                for index, row in active_df.iterrows():
+                    days_left = (row['마감기한'] - today).days
+                    d_label = f"D-{days_left}" if days_left > 0 else "D-Day"
                     
-                    # 이미지 주소 유효성 검사 강화
-                    img_path = str(row['image_url']).strip()
-                    if img_path.startswith("http"):
-                        st.image(img_path, caption="참고 자료", width=400)
-                    else:
-                        st.caption("📷 등록된 사진이 없습니다.")
+                    with st.expander(f"[{d_label}] {row['과목']} - {row['마감기한'].strftime('%m/%d')}까지"):
+                        st.write(f"**상세 내용:** {row['내용']}")
+                        if pd.notna(row.get('image_url')) and str(row['image_url']).startswith("http"):
+                            st.image(row['image_url'], width=400)
+            else:
+                st.info("현재 진행 중인 수행평가가 없습니다. 여유를 즐기세요!")
+
+            # 4. 마감된 수행평가 표시 (구분선 추가)
+            if not expired_df.empty:
+                st.write("---")
+                with st.expander("✅ 마감된 수행평가 보기 (클릭)", expanded=False):
+                    for index, row in expired_df.iterrows():
+                        st.write(f"~~[{row['마감기한'].strftime('%m/%d')}] {row['과목']}~~")
+                        st.caption(f"내용: {row['내용']}")
         else:
-            st.info("등록된 수행평가가 없습니다.")
+            st.write("등록된 내용이 없습니다.")
     except Exception as e:
-        st.error(f"데이터를 불러오는 중 오류가 발생했습니다: {e}")
+        st.error(f"데이터 로드 중 오류 발생: {e}")
 # --- 제작자 정보 ---
 st.markdown("---")
 st.caption("제작자: 30508 김지성 | 본 페이지는 실시간 학급 공유용입니다.")
