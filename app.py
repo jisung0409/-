@@ -11,7 +11,7 @@ SHEET_ID = "1uz275qask-1pt4x1MpMXWq7AkGBLx2H6az_9RUvwB3c"
 READ_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
 # ★ 중요: 아까 성공했던 구글 웹 앱 URL을 꼭 여기에 다시 넣으세요 ★
-API_URL = "https://script.google.com/macros/s/AKfycbyp29u67mqeOkUfQwy1m960us5s4MVIobSCxcRJpNqwRS7gWhrN3OztjyybbLjYxw7woA/exec"
+API_URL = "https://script.google.com/macros/s/AKfycbxSfe9kKVp2cuGB4okMtY6-VczkxvHAJab0KqL1fympA1caDEIcq1HwIUNgiK6HGs74zQ/exec"
 
 # --- D-Day 계산 함수 ---
 def get_dday(target_date_str, label):
