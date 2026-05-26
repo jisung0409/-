@@ -30,9 +30,9 @@ def get_dday(target_date_str, label):
 st.markdown("### 📅 주요 시험 일정")
 d1, d2, d3 = st.columns(3)
 with d1:
-    st.info(get_dday("2026-04-28", "📝 중간고사"))
+    st.info(get_dday("2026-06-30", "📝 중간고사"))
 with d2:
-    st.info(get_dday("2026-05-07", "📊 5월 모의고사"))
+    st.info(get_dday("2026-06-04", "📊 6월 모의고사(중요*"))
 with d3:
     st.warning(get_dday("2026-11-19", "🎓 수능"))
 
